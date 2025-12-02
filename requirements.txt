@@ -1,0 +1,7 @@
+# requirements.txt
+# 主索引
+--index-url https://pypi.tuna.tsinghua.edu.cn/simple
+# 扩展索引
+--extra-index-url https://download.pytorch.org/whl/cu121
+
+
