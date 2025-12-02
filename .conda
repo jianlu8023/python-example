@@ -1,0 +1,3 @@
+# conda create -n mytorch python=3.11
+# conda activate mytorch
+# conda deactivate mytorch
