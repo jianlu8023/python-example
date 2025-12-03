@@ -1,0 +1,72 @@
+{
+  "version": 1,
+  "disable_existing_loggers": false,
+  "formatters": {
+    "verbose": {
+      "format": "[{levelname}] {asctime} {name} - {message}",
+      "datefmt": "%Y-%m-%d %H:%M:%S",
+      "style": "{"
+    },
+    "standard": {
+      "format": "%(asctime)s | %(levelname)-6s | %(module)s:%(lineno)d | %(message)s",
+      "datefmt": "%Y-%m-%d %H:%M:%S"
+    }
+  },
+  "handlers": {
+    "console": {
+      "class": "logging.StreamHandler",
+      "formatter": "standard",
+      "level": "DEBUG"
+    },
+    "file": {
+      "class": "logging.handlers.TimedRotatingFileHandler",
+      "filename": "logs/pytorch.log",
+      "when": "midnight",
+      "interval": 1,
+      "backupCount": 7,
+      "formatter": "standard",
+      "encoding": "utf-8",
+      "level": "DEBUG"
+    }
+  },
+  "root": {
+    "handlers": [
+      "console",
+      "file"
+    ],
+    "level": "DEBUG"
+  },
+  "loggers": {
+    "__main__": {
+      "handlers": [
+        "console",
+        "file"
+      ],
+      "level": "DEBUG",
+      "propagate": false
+    },
+    "utils.visual": {
+      "handlers": [
+        "console",
+        "file"
+      ],
+      "level": "INFO",
+      "propagate": false
+    },
+    "matplotlib.__init__": {
+      "level": "INFO",
+      "handlers": [
+        "file"
+      ],
+      "propagate": false
+    },
+    "models.plma": {
+      "level": "DEBUG",
+      "handlers": [
+        "file",
+        "console"
+      ],
+      "propagate": false
+    }
+  }
+}
