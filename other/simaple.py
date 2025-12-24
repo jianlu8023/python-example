@@ -1,12 +1,10 @@
-import sys
-
 import torch
 import torch.nn as nn
 import torch.optim as optim
 from torch.utils.data import DataLoader, TensorDataset
 import logging
 
-from func import say
+from other.func import say
 
 log = logging.getLogger(__name__)
 

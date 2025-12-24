@@ -1,0 +1,31 @@
+# 所在目录
+$: pwd
+# >> django
+
+# 创建项目 举例 django_demo
+$: django-admin startproject django_demo
+# >> 会在django文件夹生成 django_demo 项目 django/django_demo
+
+# 进入 项目目录
+$: pwd
+# >> django/django_demo
+
+# 创建app 举例 common
+$: mkdir -p  apps/common
+$: django-admin startapp common apps/common
+# >> 会在apps/common 生成 app django/django_demo/apps/common
+
+
+# 设置日志
+$: vi django/django_demo/django_demo/settings.py
+# 添加LOGGING={}
+
+# 添加中间件
+
+$: vi django/django_demo/django_demo/xxx.py # 编写中间件代码 一般习惯创建middleware文件夹 写中间件
+$: vi django/django_demo/django_demo/settings.py
+# 在 MIDDLEWARE中进行添加
+
+# 数据库实体如何migrate
+$: python manage.py makemigrations
+$: python manage.py migrate
