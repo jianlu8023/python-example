@@ -1,0 +1,6 @@
+.idea/
+logs/
+db/db.sqlite3
+AGENTS.md
+Dockerfile
+

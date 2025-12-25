@@ -9,3 +9,12 @@ Django==5.2.9
 djangorestframework==3.16.1
 django-extensions==4.1
 djangorestframework-stubs==3.16.6
+#pid==3.0.4
+
+# pytorch cuda版本
+#torch==2.5.1
+#torchvision==0.20.1
+#torchaudio==2.5.1
+
+# yolo 官方库
+#ultralytics==8.3.234
