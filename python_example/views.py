@@ -1,5 +1,4 @@
 import logging
-
 from rest_framework.decorators import api_view
 
 from python_example.common.response.resp import ApiResponse

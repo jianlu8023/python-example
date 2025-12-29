@@ -41,7 +41,7 @@ while [[ $# -ge 1 ]]; do
   case $key in
    -migrate )
      MIGRATE="1"
-     shift
+     #shift
      ;;
    -address )
      if [[ -z "$2" ]]; then
@@ -61,16 +61,19 @@ while [[ $# -ge 1 ]]; do
    shift
 done
 
+
+CUDA_ENABLE=$(python -c "import torch;print(torch.cuda.is_available())")
+
 echo ""
-echo "use user:{$(whoami)} run app on date:{$(date +"%Y-%m-%d %H:%M:%S")}"
+echo "use user:{$(whoami)} run app on date:{$(date +"%Y-%m-%d %H:%M:%S")} with cuda: {$CUDA_ENABLE}"
 echo ""
 
 
 function command_migrate() {
-  echo "正在运行 makemigrations..."
+  echo "正在运行 python manage.py makemigrations..."
   python manage.py makemigrations
   echo ""
-  echo "正在运行 migrate..."
+  echo "正在运行 python manage.py migrate..."
   python manage.py migrate
   echo ""
 }
@@ -91,7 +94,7 @@ elif [[ "$MODE" == "runserver" ]];then
     command_migrate
   fi
 
-  echo "fork进程运行 runserver on $ADDRESS"
+  echo "运行 python manage.py runserver $ADDRESS"
   exec python manage.py runserver "$ADDRESS"
 else
   echo "未知命令: $MODE"

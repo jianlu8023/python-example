@@ -1,7 +1,6 @@
 # 自己制作 ultralytics/ultralytics:latest 镜像
-
-# FROM pytorch/pytorch:2.5.1-cuda12.1-cudnn9-runtime AS ultralytics-builder
-FROM pytorch/pytorch:2.5.1-cuda12.1-cudnn9-devel AS ultralytics-builder
+FROM pytorch/pytorch:2.5.1-cuda12.1-cudnn9-runtime AS ultralytics-builder
+#FROM pytorch/pytorch:2.5.1-cuda12.1-cudnn9-devel AS ultralytics-builder
 
 ENV PYTHONUNBUFFERED=1 \
     PYTHONDONTWRITEBYTECODE=1 \
@@ -11,7 +10,8 @@ ENV PYTHONUNBUFFERED=1 \
     OMP_NUM_THREADS=1 \
     TF_CPP_MIN_LOG_LEVEL=3 \
     DEBIAN_FRONTEND=noninteractive \
-    TZ=Asia/Shanghai
+    TZ=Asia/Shanghai \
+    ULTRALYTICS_VERSION=v8.3.234
 
 ADD https://github.com/ultralytics/assets/releases/download/v0.0.0/Arial.ttf \
     https://github.com/ultralytics/assets/releases/download/v0.0.0/Arial.Unicode.ttf \
@@ -34,7 +34,7 @@ RUN sed -i s@/archive.ubuntu.com/@/mirrors.aliyun.com/@g /etc/apt/sources.list &
 
 WORKDIR /ultralytics
 
-RUN git clone -b v8.3.234 https://github.com/ultralytics/ultralytics.git /ultralytics && \
+RUN git clone -b $ULTRALYTICS_VERSION https://github.com/ultralytics/ultralytics.git /ultralytics && \
     sed -i '/^\[http "https:\/\/github\.com\/"\]/,+1d' .git/config && \
     sed -i'' -e 's/"opencv-python/"opencv-python-headless/' pyproject.toml
 ADD https://github.com/ultralytics/assets/releases/download/v8.3.0/yolo11n.pt .
@@ -46,6 +46,8 @@ RUN pip config set global.index-url https://pypi.tuna.tsinghua.edu.cn/simple && 
 
 FROM ubuntu:20.04 AS tools-builder
 
+# tini 安装目录 /usr/bin/tini
+# gosu 安装目录 /usr/sbin/gosu
 RUN sed -i s@/archive.ubuntu.com/@/mirrors.aliyun.com/@g /etc/apt/sources.list && \
     sed -i s@/security.ubuntu.com/@/mirrors.aliyun.com/@g /etc/apt/sources.list && \
     apt-get update && \
@@ -60,7 +62,6 @@ COPY requirements.txt .
 
 RUN pip install -r requirements.txt
 
-
 FROM pip-builder AS runner
 
 WORKDIR /home/appuser/myapp
@@ -70,16 +71,20 @@ COPY --from=tools-builder /usr/bin/tini /usr/bin/tini
 COPY --from=tools-builder /usr/sbin/gosu /usr/sbin/gosu
 
 #创建非 root 用户
-RUN groupadd -g 1000 -r myusers && \
+RUN groupadd -g 1000 -r appusers && \
     useradd -m -r -u 1000 -g myusers appuser && \
     mkdir -p /home/appuser/myapp && \
     mkdir -p /home/appuser/myapp/db && \
     mkdir -p /home/appuser/myapp/logs && \
     mkdir -p /home/appuser/myapp/uploads && \
     mkdir -p /home/appuser/.config/Ultralytics && \
+    mkdir -p /home/appuser/.cache/torch/hub/checkpoints && \
+    python -c "from torchvision.models import ResNet18_Weights, resnet18; model18=resnet18(weights=ResNet18_Weights.DEFAULT);" && \
+    mv /root/.cache/torch/hub/checkpoints/* /home/appuser/.cache/torch/hub/checkpoints/ && \
+    rm -rf /root/.cache/torch && \
     mv /home/appuser/myapp/docker-entrypoint.sh /docker-entrypoint.sh && \
     chmod +x /docker-entrypoint.sh && \
-    chown -R appuser:myusers /home/appuser
+    chown -R appuser:appusers /home/appuser
 
 USER appuser
 
@@ -91,6 +96,6 @@ EXPOSE 8000
 ENTRYPOINT ["/usr/bin/tini","--","/docker-entrypoint.sh"]
 
 HEALTHCHECK --start-period=60s --retries=3 --timeout=15s --interval=60s \
-    CMD curl http://127.0.0.1:8000/ || exit 1
+    CMD curl -fsSL http://127.0.0.1:8000/ || exit 1
 
 CMD ["runserver", "-migrate", "-address", "0.0.0.0:8000"]
