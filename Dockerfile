@@ -11,7 +11,10 @@ ENV PYTHONUNBUFFERED=1 \
     TF_CPP_MIN_LOG_LEVEL=3 \
     DEBIAN_FRONTEND=noninteractive \
     TZ=Asia/Shanghai \
-    ULTRALYTICS_VERSION=v8.3.234
+    ULTRALYTICS_VERSION=v8.3.234 \
+    LANG='en_US.UTF-8' \
+    LANGUAGE='en_US:en' \
+    LC_ALL='en_US.UTF-8'
 
 ADD https://github.com/ultralytics/assets/releases/download/v0.0.0/Arial.ttf \
     https://github.com/ultralytics/assets/releases/download/v0.0.0/Arial.Unicode.ttf \
@@ -21,7 +24,7 @@ RUN sed -i s@/archive.ubuntu.com/@/mirrors.aliyun.com/@g /etc/apt/sources.list &
     sed -i s@/security.ubuntu.com/@/mirrors.aliyun.com/@g /etc/apt/sources.list && \
     apt-get update && \
     apt-get install -y --no-install-recommends \
-    gcc git htop \
+    gcc git htop locales \
     zip unzip \
     wget curl \
     libgl1 libglib2.0-0 gnupg libsm6  \
@@ -29,6 +32,7 @@ RUN sed -i s@/archive.ubuntu.com/@/mirrors.aliyun.com/@g /etc/apt/sources.list &
     echo "Asia/Shanghai" > /etc/timezone && \
     ln -fs /usr/share/zoneinfo/Asia/Shanghai /etc/localtime && \
     dpkg-reconfigure -f noninteractive tzdata && \
+    locale-gen en_US.UTF-8 && \
     apt-get clean && \
     rm -rf /var/lib/apt/lists/*
 
@@ -82,6 +86,8 @@ RUN groupadd -g 1000 -r appusers && \
     python -c "from torchvision.models import ResNet18_Weights, resnet18; model18=resnet18(weights=ResNet18_Weights.DEFAULT);" && \
     mv /root/.cache/torch/hub/checkpoints/* /home/appuser/.cache/torch/hub/checkpoints/ && \
     rm -rf /root/.cache/torch && \
+    yolo settings && \
+    mv /root/.config/Ultralytics/settings.json /home/appuser/.config/Ultralytics/settings.json && \
     mv /home/appuser/myapp/docker-entrypoint.sh /docker-entrypoint.sh && \
     chmod +x /docker-entrypoint.sh && \
     chown -R appuser:appusers /home/appuser
