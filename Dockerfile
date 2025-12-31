@@ -50,13 +50,31 @@ RUN pip config set global.index-url https://pypi.tuna.tsinghua.edu.cn/simple && 
 
 FROM ubuntu:20.04 AS tools-builder
 
+
+ENV GRPCURL_VERSION=1.9.3 \
+    GHPROXY=https://gh-proxy.com/ \
+    DEBIAN_FRONTEND=noninteractive
+
 # tini 安装目录 /usr/bin/tini
 # gosu 安装目录 /usr/sbin/gosu
+# grpcurl 安装目录 /usr/bin/grpcurl
 RUN sed -i s@/archive.ubuntu.com/@/mirrors.aliyun.com/@g /etc/apt/sources.list && \
     sed -i s@/security.ubuntu.com/@/mirrors.aliyun.com/@g /etc/apt/sources.list && \
     apt-get update && \
     apt-get install -y --no-install-recommends \
-    tini gosu
+    tini gosu wget curl tzdata && \
+    dpkg-reconfigure -f noninteractive tzdata && \
+    ln -fs /usr/share/zoneinfo/Asia/Shanghai /etc/localtime && \
+    wget ${GHPROXY}https://github.com/fullstorydev/grpcurl/releases/download/v${GRPCURL_VERSION}/grpcurl_${GRPCURL_VERSION}_linux_amd64.deb && \
+    dpkg -i grpcurl_${GRPCURL_VERSION}_linux_amd64.deb
+
+# -plaintext 是不带ssl的
+# 如果需要ssl -cacert -key -cert -servername -insecure 等字段即可
+HEALTHCHECK --start-period=60s --interval=60s --timeout=3s --retries=3 \
+            CMD grpcurl -d '{"xxx":"xxx"}' \
+            -proto /path/xxx.proto \
+            -plaintext 127.0.0.1:8888 \
+            hello.SayHelloService/SayHello || exit 1
 
 FROM ultralytics-builder AS pip-builder
 
