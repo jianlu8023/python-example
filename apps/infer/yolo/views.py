@@ -1,11 +1,14 @@
 import json
 import logging
+import os
+import tempfile
 
 import torch
 from PIL import Image
 from rest_framework.decorators import api_view
 from ultralytics import YOLO
 
+from apps.infer.modelcache import ModelCache
 from python_example.common.response.resp import ApiResponse
 
 logger = logging.getLogger(__name__)
@@ -44,8 +47,14 @@ def detect(request):
                 logger.warning(f"YOLO模型标签解析失败，使用默认标签映射: {str(e)}")
                 model_labels = {}
         
+        # 读取模型文件内容
+        model_content = model_file.read()
+        
+        # 使用模型缓存加载YOLO模型
+        model_cache = ModelCache()
+        yolo_model = model_cache.get_yolo_from_content(model_content, device, model_file.name)
+        
         infer_file = Image.open(image_file)
-        yolo_model = YOLO(model_file)
         results = yolo_model(infer_file, device=device, verbose=True)
         
         result_data = []
@@ -94,8 +103,12 @@ def classify(request):
         
         device = 'cuda' if torch.cuda.is_available() else 'cpu'
         
+        # 读取模型文件内容
+        model_content = model_file.read()
         
-        model_yolo = YOLO(model_file)
+        # 使用模型缓存加载YOLO模型
+        model_cache = ModelCache()
+        model_yolo = model_cache.get_yolo_from_content(model_content, device, model_file.name)
         
         # 加载模型标签映射
         model_labels = {}

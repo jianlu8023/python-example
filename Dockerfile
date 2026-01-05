@@ -24,7 +24,7 @@ RUN sed -i s@/archive.ubuntu.com/@/mirrors.aliyun.com/@g /etc/apt/sources.list &
     sed -i s@/security.ubuntu.com/@/mirrors.aliyun.com/@g /etc/apt/sources.list && \
     apt-get update && \
     apt-get install -y --no-install-recommends \
-    gcc git htop locales \
+    gcc git htop locales vim \
     zip unzip \
     wget curl \
     libgl1 libglib2.0-0 gnupg libsm6  \
@@ -106,6 +106,8 @@ RUN groupadd -g 1000 -r appusers && \
     rm -rf /root/.cache/torch && \
     yolo settings && \
     mv /root/.config/Ultralytics/settings.json /home/appuser/.config/Ultralytics/settings.json && \
+    printf '%s\n' '#!/bin/sh' 'ls --color=auto -lah "$@"' > /usr/bin/ll && \
+    chmod +x /usr/bin/ll && \
     mv /home/appuser/myapp/docker-entrypoint.sh /docker-entrypoint.sh && \
     chmod +x /docker-entrypoint.sh && \
     chown -R appuser:appusers /home/appuser

@@ -1,13 +1,16 @@
-
-
-from python_example.common.response.resp import ApiResponse
+import json
+import logging
 
 import torch
 from PIL import Image
 from rest_framework.decorators import api_view
-from torch import nn
 from torchvision import transforms
-from torchvision.models import resnet18
+
+from apps.infer.modelcache import ModelCache
+from python_example.common.response.resp import ApiResponse
+
+logger = logging.getLogger(__name__)
+
 
 # Create your views here.
 
@@ -37,10 +40,10 @@ def resnet18(request):
         
         device = 'cuda' if torch.cuda.is_available() else 'cpu'
         
-        model_resnet18 = resnet18(weights=None)
-        num_features = model_resnet18.fc.in_features
+        # 读取模型文件内容
+        model_content = model_file.read()
         
-        # 加载模型标签映射
+        # 获取模型标签映射
         model_labels = {}
         if model_label:
             try:
@@ -50,26 +53,10 @@ def resnet18(request):
                 model_labels = {}
         
         num_classes = len(model_labels) if model_labels else 1000
-        model_resnet18.fc = nn.Linear(num_features, num_classes)
         
-        model_resnet18.to(device)
-        
-        # 尝试加载模型权重
-        try:
-            model_resnet18.load_state_dict(
-                torch.load(model_file, map_location=torch.device(device), weights_only=True))
-        except Exception as e:
-            logger.warning(
-                f"ResNet18模型 加载权重出错,尝试使用strict=False: {str(e)}")
-            try:
-                model_resnet18.load_state_dict(
-                    torch.load(model_file, map_location=torch.device(device)), strict=False)
-            except Exception as e2:
-                logger.warning(
-                    f"ResNet18模型 以strict=False方式加载权重也出错: {str(e2)}")
-                return ApiResponse.error(data='加载模型权重失败')
-        
-        model_resnet18.eval()
+        # 使用模型缓存加载ResNet18模型
+        model_cache = ModelCache()
+        model_resnet18 = model_cache.get_resnet18_from_content(model_content, num_classes, device, model_file.name)
         
         preprocess = transforms.Compose([
             transforms.Resize((224, 224)),
