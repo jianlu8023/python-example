@@ -5,7 +5,7 @@ IMAGE_NAME:=ubuntu/python-example/gpu-server:$(IMAGE_VERSION)
 docker: docker-active
 	@docker buildx build -t "$(IMAGE_NAME)" -f "$(DOCKER_FILE)" .
 	@docker builder prune -a -f
-	@echo "Image Name: $(UPGRADE_IMAGE_NAME)"
+	@echo "Image Name: $(IMAGE_NAME)"
 	@echo "done"
 .PHONY: docker
 
@@ -25,3 +25,8 @@ docker-active:
 		exit 3; \
 	fi
 .PHONY: docker-active
+
+clean:
+	@docker builder prune -a -f
+	@echo "done"
+.PHONY: clean

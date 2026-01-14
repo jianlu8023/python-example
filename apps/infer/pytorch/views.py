@@ -22,7 +22,6 @@ def index(request):
 
 @api_view(['POST'])
 def resnet18(request):
-    logger.debug(f"receive infer/pytorch/resnet18 api")
     
     image_file = request.FILES.get("file", None)
     if image_file is None:

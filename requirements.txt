@@ -11,6 +11,11 @@ django-extensions==4.1
 djangorestframework-stubs==3.16.6
 #pid==3.0.4
 
+django-ipware==7.0.1
+
+colorlog==6.10.1
+
+
 # pytorch cuda版本
 #torch==2.5.1
 #torchvision==0.20.1

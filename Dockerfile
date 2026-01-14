@@ -100,12 +100,12 @@ RUN groupadd -g 1000 -r appusers && \
     mkdir -p /home/appuser/myapp/logs && \
     mkdir -p /home/appuser/myapp/uploads && \
     mkdir -p /home/appuser/.config/Ultralytics && \
+    yolo settings && \
+    mv /root/.config/Ultralytics/settings.json /home/appuser/.config/Ultralytics/settings.json && \
     mkdir -p /home/appuser/.cache/torch/hub/checkpoints && \
     python -c "from torchvision.models import ResNet18_Weights, resnet18; model18=resnet18(weights=ResNet18_Weights.DEFAULT);" && \
     mv /root/.cache/torch/hub/checkpoints/* /home/appuser/.cache/torch/hub/checkpoints/ && \
     rm -rf /root/.cache/torch && \
-    yolo settings && \
-    mv /root/.config/Ultralytics/settings.json /home/appuser/.config/Ultralytics/settings.json && \
     printf '%s\n' '#!/bin/sh' 'ls --color=auto -lah "$@"' > /usr/bin/ll && \
     chmod +x /usr/bin/ll && \
     mv /home/appuser/myapp/docker-entrypoint.sh /docker-entrypoint.sh && \
@@ -115,7 +115,8 @@ RUN groupadd -g 1000 -r appusers && \
 USER appuser
 
 VOLUME /home/appuser/myapp/logs \
-       /home/appuser/myapp/db
+       /home/appuser/myapp/db \
+       /home/appuser/myapp/config
 
 EXPOSE 8000
 

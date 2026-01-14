@@ -23,7 +23,6 @@ def index(request):
 
 @api_view(["POST"])
 def detect(request):
-    logger.debug(f"receive infer/yolo/detect api")
     
     image_file = request.FILES.get("file", None)
     if image_file is None:
@@ -89,7 +88,6 @@ def detect(request):
 
 @api_view(["POST"])
 def classify(request):
-    logger.debug(f"receive infer/yolo/classify api")
     image_file = request.FILES.get("file", None)
     if image_file is None:
         return ApiResponse.error(data='缺少推理文件')

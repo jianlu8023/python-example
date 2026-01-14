@@ -16,13 +16,20 @@ logger = logging.getLogger(__name__)
 
 @api_view(['GET'])
 def index(request):
-    logger.debug(f"receive common/ api")
     return ApiResponse.success(data='index')
 
 
 @api_view(['POST'])
 def file_upload(request):
-    logger.debug(f"receive common/file/upload api")
+    """
+    file_upload 文件上传
+    :param
+    :param request: 请求
+    :request
+    :request file: 文件
+    :request save_name: 保存名
+    :return: 封装的ApiResponse
+    """
     
     file = request.FILES.get('file')
     save_name = request.data.get('save_name')

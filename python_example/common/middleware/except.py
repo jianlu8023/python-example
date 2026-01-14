@@ -16,10 +16,13 @@ class GlobalExceptionMiddleware:
         self.get_response = get_response
     
     def __call__(self, request):
-        response = self.get_response(request)
+        try:
+            response = self.get_response(request)
+        except Exception as e:
+            return self.handle_exception(request, e)
         return response
     
-    def process_exception(self, request, exception):
+    def handle_exception(self, request, exception):
         """
         处理未捕获的异常
         :param request: 请求对象

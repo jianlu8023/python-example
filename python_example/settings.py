@@ -13,6 +13,12 @@ import os
 import sys
 from pathlib import Path
 
+try:
+    from config import config
+except ImportError as e:
+    print(f"导入配置信息失败: {str(e)}")
+    raise e
+
 # Build paths inside the project like this: BASE_DIR / 'subdir'.
 BASE_DIR = Path(__file__).resolve().parent.parent
 
@@ -23,9 +29,9 @@ BASE_DIR = Path(__file__).resolve().parent.parent
 SECRET_KEY = 'django-insecure-**gjf(f_h)^e32x#fk_)cxzpbq5saxge7*x$skb+*dr4ui)tef'
 
 # SECURITY WARNING: don't run with debug turned on in production!
-DEBUG = True
+DEBUG = config.DEBUG
 
-ALLOWED_HOSTS = []
+ALLOWED_HOSTS = config.ALLOWED_HOSTS
 
 # Application definition
 
@@ -41,7 +47,8 @@ INSTALLED_APPS = [
     'django.contrib.staticfiles',
     'django_extensions',
     # 添加 common app
-    'apps.common'
+    'apps.common',
+    'apps.infer',
 ]
 
 ############################# MIDDLEWARE #############################
@@ -54,6 +61,8 @@ MIDDLEWARE = [
     'django.contrib.auth.middleware.AuthenticationMiddleware',
     'django.contrib.messages.middleware.MessageMiddleware',
     'django.middleware.clickjacking.XFrameOptionsMiddleware',
+    
+    'python_example.common.middleware.request.RequestLoggingMiddleware',
     # 添加 全局异常捕获
     'python_example.common.middleware.except.GlobalExceptionMiddleware'
 ]
@@ -82,12 +91,11 @@ WSGI_APPLICATION = 'python_example.wsgi.application'
 # Database
 # https://docs.djangoproject.com/en/5.2/ref/settings/#databases
 
-db_path = BASE_DIR / 'db'
-os.makedirs(db_path, exist_ok=True)
+os.makedirs(os.path.dirname(config.DB_PATH), exist_ok=True)
 DATABASES = {
     'default': {
         'ENGINE': 'django.db.backends.sqlite3',
-        'NAME': db_path / 'db.sqlite3',
+        'NAME': config.DB_PATH,
     }
 }
 
@@ -112,14 +120,14 @@ AUTH_PASSWORD_VALIDATORS = [
 # Internationalization
 # https://docs.djangoproject.com/en/5.2/topics/i18n/
 
-LANGUAGE_CODE = 'en-us'
+LANGUAGE_CODE = config.LANGUAGE_CODE
 
 # TIME_ZONE = 'UTC'
-TIME_ZONE = 'Asia/Shanghai'
+TIME_ZONE = config.TIME_ZONE
 
-USE_I18N = True
+USE_I18N = config.USE_I18N
 
-USE_TZ = True
+USE_TZ = config.USE_TZ
 
 # Static files (CSS, JavaScript, Images)
 # https://docs.djangoproject.com/en/5.2/howto/static-files/
@@ -133,8 +141,7 @@ DEFAULT_AUTO_FIELD = 'django.db.models.BigAutoField'
 
 ############################# LOGGING #############################
 
-log_path = "logs"
-os.makedirs(log_path, exist_ok=True)
+os.makedirs(os.path.dirname(config.LOG_PATH), exist_ok=True)
 LOGGING = {
     'version': 1,
     'disable_existing_loggers': False,
@@ -145,23 +152,35 @@ LOGGING = {
             'style': '{',
         },
         'standard': {
-            'format': '%(asctime)s | %(levelname)-6s | %(module)s:%(lineno)d | %(message)s',
+            'format': '%(asctime)s | %(levelname)-6s | %(module)s:%(lineno)-4d | %(message)s',
             'datefmt': '%Y-%m-%d %H:%M:%S',
         },
+        'console': {
+            '()': 'colorlog.ColoredFormatter',
+            'format': '%(asctime)s | %(log_color)s%(levelname)-6s%(reset)s | %(module)s:%(lineno)-4d | %(message)s',
+            'datefmt': '%Y-%m-%d %H:%M:%S',
+            'log_colors': {
+                'DEBUG': 'cyan',
+                'INFO': 'blue',
+                'WARNING': 'yellow',
+                'ERROR': 'red',
+                'CRITICAL': 'red,bg_white',
+            },
+        }
     },
     
     'handlers': {
         'console': {
             'class': 'logging.StreamHandler',
-            'formatter': 'standard',
+            'formatter': 'console',
             'level': 'DEBUG',  # 只处理 info 及以上的日志
         },
         'file': {
             'class': 'logging.handlers.TimedRotatingFileHandler',
-            'filename': os.path.join(log_path, "app.log"),
+            'filename': config.LOG_PATH,
             'when': 'midnight',  # 每天零点新建一个日志文件
             'interval': 1,
-            'backupCount': 7,  # 保留 7 天
+            'backupCount': config.LOG_BACKUP_COUNT,  # 保留 7 天
             'formatter': 'standard',
             'encoding': 'utf-8',
             'level': 'DEBUG',  # 处理 debug 及以上的日志

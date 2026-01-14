@@ -5,7 +5,7 @@ user=appuser
 
 # 切换到指定用户重新执行 shell
 if [ "$(id -u)" -eq 0 ]; then
-  echo "change user to $user"
+  echo "$(date +"%Y-%m-%d %H:%M:%S") [INFO ] change user to $user"
   exec gosu "$user" "$0" "$@"
 fi
 
@@ -21,6 +21,10 @@ function printHelp(){
   echo "  -migrate 同时需要执行迁移命名,等同于 migrate"
   echo "  -address 配置运行服务地址"
   echo ""
+  echo "Example:"
+  echo "  runserver -address 0.0.0.0:8000 -migrate"
+  echo "  migrate"
+  echo ""
 }
 
 
@@ -28,7 +32,7 @@ function printHelp(){
 MODE=""
 
 if [[ $# -lt 1 ]]; then
-  echo "缺少运行命令"
+  echo "$(date +"%Y-%m-%d %H:%M:%S") [WARN ] 缺少运行命令"
   printHelp
   exit 1
 else
@@ -45,7 +49,7 @@ while [[ $# -ge 1 ]]; do
      ;;
    -address )
      if [[ -z "$2" ]]; then
-       echo "缺少运行地址信息"
+       echo "$(date +"%Y-%m-%d %H:%M:%S") [ERROR] 缺少运行地址信息"
        printHelp
        exit 1
      fi
@@ -53,7 +57,7 @@ while [[ $# -ge 1 ]]; do
      shift
      ;;
    * )
-     echo "未知Option: $key"
+     echo "$(date +"%Y-%m-%d %H:%M:%S") [ERROR] 未知Option: $key"
      printHelp
      exit 1
      ;;
@@ -65,15 +69,15 @@ done
 CUDA_ENABLE=$(python -c "import torch;print(torch.cuda.is_available())")
 
 echo ""
-echo "use user:{$(whoami)} run app on date:{$(date +"%Y-%m-%d %H:%M:%S")} with cuda: {$CUDA_ENABLE}"
+echo "$(date +"%Y-%m-%d %H:%M:%S") [INFO ] use user:{$(whoami)} run app with cuda: {$CUDA_ENABLE}"
 echo ""
 
 
 function command_migrate() {
-  echo "正在运行 python manage.py makemigrations..."
+  echo "$(date +"%Y-%m-%d %H:%M:%S") [INFO ] 正在运行 python manage.py makemigrations..."
   python manage.py makemigrations
   echo ""
-  echo "正在运行 python manage.py migrate..."
+  echo "$(date +"%Y-%m-%d %H:%M:%S") [INFO ] 正在运行 python manage.py migrate..."
   python manage.py migrate
   echo ""
 }
@@ -84,7 +88,7 @@ if [[ "$MODE" == "migrate" ]]; then
 elif [[ "$MODE" == "runserver" ]];then
   # 判断是否有监听地址
   if [[ -z "$ADDRESS" ]]; then
-    echo "运行服务缺少监听地址"
+    echo "$(date +"%Y-%m-%d %H:%M:%S") [ERROR] 运行服务缺少监听地址"
     printHelp
     exit 1
   fi
@@ -94,10 +98,10 @@ elif [[ "$MODE" == "runserver" ]];then
     command_migrate
   fi
 
-  echo "运行 python manage.py runserver $ADDRESS"
+  echo "$(date +"%Y-%m-%d %H:%M:%S") [INFO ] 运行 python manage.py runserver $ADDRESS"
   exec python manage.py runserver "$ADDRESS"
 else
-  echo "未知命令: $MODE"
+  echo "$(date +"%Y-%m-%d %H:%M:%S") [ERROR ] 未知命令: $MODE"
   printHelp
   exit 1
 fi
