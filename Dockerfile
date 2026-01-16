@@ -1,4 +1,4 @@
-# 自己制作 ultralytics/ultralytics:latest 镜像
+# 自己制作 ultralytics/ultralytics:8.3.234 镜像
 FROM pytorch/pytorch:2.5.1-cuda12.1-cudnn9-runtime AS ultralytics-builder
 #FROM pytorch/pytorch:2.5.1-cuda12.1-cudnn9-devel AS ultralytics-builder
 
@@ -12,6 +12,7 @@ ENV PYTHONUNBUFFERED=1 \
     DEBIAN_FRONTEND=noninteractive \
     TZ=Asia/Shanghai \
     ULTRALYTICS_VERSION=v8.3.234 \
+    UV_HTTP_TIMEOUT=60 \
     LANG='en_US.UTF-8' \
     LANGUAGE='en_US:en' \
     LC_ALL='en_US.UTF-8'
@@ -45,19 +46,20 @@ ADD https://github.com/ultralytics/assets/releases/download/v8.3.0/yolo11n.pt .
 
 RUN pip config set global.index-url https://pypi.tuna.tsinghua.edu.cn/simple && \
     pip install uv && \
-    uv pip install --system -e "." albumentations faster-coco-eval wandb && \
-    rm -rf tmp /root/.config/Ultralytics/persistent_cache.json
+    uv --no-cache pip install --system -e "." albumentations faster-coco-eval wandb && \
+    rm -rf tmp /root/.config/Ultralytics/persistent_cache.json && \
+    rm -rf /root/.cache/uv
 
-FROM ubuntu:20.04 AS tools-builder
-
+FROM ubuntu:22.04 AS tools-builder
 
 ENV GRPCURL_VERSION=1.9.3 \
     GHPROXY=https://gh-proxy.com/ \
     DEBIAN_FRONTEND=noninteractive
 
-# tini 安装目录 /usr/bin/tini
-# gosu 安装目录 /usr/sbin/gosu
-# grpcurl 安装目录 /usr/bin/grpcurl
+#              ubuntu                   alpine
+# tini 安装目录 /usr/bin/tini           /sbin/tini
+# gosu 安装目录 /usr/sbin/gosu          /usr/bin/gosu
+# grpcurl 安装目录 /usr/bin/grpcurl     只能 golang:alpine->go install 然后 COPY
 RUN sed -i s@/archive.ubuntu.com/@/mirrors.aliyun.com/@g /etc/apt/sources.list && \
     sed -i s@/security.ubuntu.com/@/mirrors.aliyun.com/@g /etc/apt/sources.list && \
     apt-get update && \
@@ -82,37 +84,52 @@ WORKDIR /pip
 
 COPY requirements.txt .
 
-RUN pip install -r requirements.txt
+RUN uv --no-cache pip install --system -r requirements.txt && \
+    rm -rf /root/.cache/uv
+
+FROM pytorch/pytorch:2.5.1-cuda12.1-cudnn9-runtime AS code-builder
+
+WORKDIR /code
+
+COPY . .
+
+RUN mv /code/docker-entrypoint.sh /docker-entrypoint.sh && \
+    chmod +x /docker-entrypoint.sh
+
+FROM ultralytics-builder AS runner-prepare
+
+
+RUN yolo settings && \
+    python -c "from torchvision.models import ResNet18_Weights, resnet18; model18=resnet18(weights=ResNet18_Weights.DEFAULT);" && \
+    printf '%s\n' '#!/bin/sh' 'ls --color=auto -lah "$@"' > /usr/bin/ll && \
+    chmod +x /usr/bin/ll
 
 FROM pip-builder AS runner
 
-WORKDIR /home/appuser/myapp
-
-COPY . .
-COPY --from=tools-builder /usr/bin/tini /usr/bin/tini
-COPY --from=tools-builder /usr/sbin/gosu /usr/sbin/gosu
-
 #创建非 root 用户
 RUN groupadd -g 1000 -r appusers && \
-    useradd -m -r -u 1000 -g myusers appuser && \
+    useradd -m -r -u 1000 -g appusers appuser && \
     mkdir -p /home/appuser/myapp && \
     mkdir -p /home/appuser/myapp/db && \
     mkdir -p /home/appuser/myapp/logs && \
     mkdir -p /home/appuser/myapp/uploads && \
     mkdir -p /home/appuser/.config/Ultralytics && \
-    yolo settings && \
-    mv /root/.config/Ultralytics/settings.json /home/appuser/.config/Ultralytics/settings.json && \
     mkdir -p /home/appuser/.cache/torch/hub/checkpoints && \
-    python -c "from torchvision.models import ResNet18_Weights, resnet18; model18=resnet18(weights=ResNet18_Weights.DEFAULT);" && \
-    mv /root/.cache/torch/hub/checkpoints/* /home/appuser/.cache/torch/hub/checkpoints/ && \
-    rm -rf /root/.cache/torch && \
-    printf '%s\n' '#!/bin/sh' 'ls --color=auto -lah "$@"' > /usr/bin/ll && \
-    chmod +x /usr/bin/ll && \
-    mv /home/appuser/myapp/docker-entrypoint.sh /docker-entrypoint.sh && \
-    chmod +x /docker-entrypoint.sh && \
     chown -R appuser:appusers /home/appuser
 
-USER appuser
+WORKDIR /home/appuser/myapp
+
+COPY --from=code-builder --chown=appuser:appusers   /code/                                      .
+COPY --from=code-builder                            /docker-entrypoint.sh                       /docker-entrypoint.sh
+COPY --from=tools-builder                           /usr/bin/tini                               /usr/bin/tini
+COPY --from=tools-builder                           /usr/sbin/gosu                              /usr/sbin/gosu
+COPY --from=runner-prepare --chown=appuser:appusers /root/.config/Ultralytics/settings.json     /home/appuser/.config/Ultralytics/settings.json
+COPY --from=runner-prepare --chown=appuser:appusers /root/.config/Ultralytics/Arial.ttf         /home/appuser/.config/Ultralytics/Arial.ttf
+COPY --from=runner-prepare --chown=appuser:appusers /root/.config/Ultralytics/Arial.Unicode.ttf /home/appuser/.config/Ultralytics/Arial.Unicode.ttf
+COPY --from=runner-prepare --chown=appuser:appusers /root/.cache/torch/hub/checkpoints/*        /home/appuser/.cache/torch/hub/checkpoints/
+
+
+USER appuser:appusers
 
 VOLUME /home/appuser/myapp/logs \
        /home/appuser/myapp/db \

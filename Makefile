@@ -26,7 +26,7 @@ docker-active:
 	fi
 .PHONY: docker-active
 
-clean:
+clean: docker-active
 	@docker builder prune -a -f
 	@echo "done"
 .PHONY: clean
