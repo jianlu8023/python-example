@@ -4,7 +4,6 @@ DOCKER_FILE:= Dockerfile
 IMAGE_NAME:=ubuntu/python-example/gpu-server:$(IMAGE_VERSION)
 docker: docker-active
 	@docker buildx build -t "$(IMAGE_NAME)" -f "$(DOCKER_FILE)" .
-	@docker builder prune -a -f
 	@echo "Image Name: $(IMAGE_NAME)"
 	@echo "done"
 .PHONY: docker
@@ -30,3 +29,12 @@ clean: docker-active
 	@docker builder prune -a -f
 	@echo "done"
 .PHONY: clean
+
+
+DOCKER_PROD_FILE:= Dockerfile
+IMAGE_PROD_NAME:=ubuntu/python-example/gpu-server:$(IMAGE_VERSION)
+docker-prod: docker-active
+	@docker buildx build -t "$(IMAGE_PROD_NAME)" -f "$(DOCKER_PROD_FILE)" .
+	@echo "Image Name: $(IMAGE_PROD_NAME)"
+	@echo "done"
+.PHONY: docker-prod

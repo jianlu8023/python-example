@@ -15,15 +15,18 @@ function printHelp(){
   echo ""
   echo "Commands:"
   echo "  migrate: 只做迁移命令,会自动执行makemigrations"
-  echo "  runserver: 只做运行服务命令, 需要 -address 的 Option"
+  echo "  runserver: 运行 python manege.py runserver 服务命令, 必选 -address 的 Option"
+  echo "  serve: 运行 gunicorn 服务命令 可选 -config -address 的 Option"
   echo ""
   echo "Options:"
   echo "  -migrate 同时需要执行迁移命名,等同于 migrate"
-  echo "  -address 配置运行服务地址"
+  echo "  -address HOST:PORT 配置运行服务地址"
+  echo "  -config gunicorn命令的配置文件"
   echo ""
   echo "Example:"
   echo "  runserver -address 0.0.0.0:8000 -migrate"
   echo "  migrate"
+  echo "  serve -address 0.0.0.0:8080 -migrate -config config/gunicorn.config.py"
   echo ""
 }
 
@@ -56,6 +59,15 @@ while [[ $# -ge 1 ]]; do
      ADDRESS="$2"
      shift
      ;;
+   -config )
+     if [[ -z "$2" ]]; then
+       echo "$(date +"%Y-%m-%d %H:%M:%S") [ERROR] 缺少gunicorn的配置文件信息"
+       printHelp
+       exit 1
+    fi
+    GUNICORN_CONFIG="$2"
+    shift
+    ;;
    * )
      echo "$(date +"%Y-%m-%d %H:%M:%S") [ERROR] 未知Option: $key"
      printHelp
@@ -100,6 +112,31 @@ elif [[ "$MODE" == "runserver" ]];then
 
   echo "$(date +"%Y-%m-%d %H:%M:%S") [INFO ] 运行 python manage.py runserver $ADDRESS"
   exec python manage.py runserver "$ADDRESS"
+elif [[ "$MODE" == "serve" ]]; then
+
+  if [[ -z "$GUNICORN_CONFIG" ]]; then
+    echo "$(date +"%Y-%m-%d %H:%M:%S") [ERROR] 缺少gunicorn配置文件信息"
+    printHelp
+    exit 1
+  fi
+
+  if [[ ! -f "$GUNICORN_CONFIG" ]]; then
+    echo "$(date +"%Y-%m-%d %H:%M:%S") [ERROR] Gunicorn 配置文件不存在: $GUNICORN_CONFIG"
+    exit 1
+  fi
+
+  if [[ "$MIGRATE" == "1" ]]; then
+    command_migrate
+  fi
+
+  if [[ -z "$ADDRESS" ]]; then
+    echo "运行 gunicorn --config $GUNICORN_CONFIG python_example.wsgi:application"
+    exec gunicorn --config $GUNICORN_CONFIG "python_example.wsgi:application"
+  else
+    echo "运行 gunicorn --bind $ADDRESS --config $GUNICORN_CONFIG python_example.wsgi:application"
+    exec gunicorn --bind $ADDRESS --config $GUNICORN_CONFIG "python_example.wsgi:application"
+  fi
+
 else
   echo "$(date +"%Y-%m-%d %H:%M:%S") [ERROR ] 未知命令: $MODE"
   printHelp
