@@ -16,7 +16,7 @@ function printHelp(){
   echo "Commands:"
   echo "  migrate: 只做迁移命令,会自动执行makemigrations"
   echo "  runserver: 运行 python manege.py runserver 服务命令, 必选 -address 的 Option"
-  echo "  serve: 运行 gunicorn 服务命令 可选 -config -address 的 Option"
+  echo "  serve: 运行 gunicorn 服务命令 可选 -address 的 Option, 必选 -config 的 Option"
   echo ""
   echo "Options:"
   echo "  -migrate 同时需要执行迁移命名,等同于 migrate"
@@ -130,15 +130,15 @@ elif [[ "$MODE" == "serve" ]]; then
   fi
 
   if [[ -z "$ADDRESS" ]]; then
-    echo "运行 gunicorn --config $GUNICORN_CONFIG python_example.wsgi:application"
-    exec gunicorn --config $GUNICORN_CONFIG "python_example.wsgi:application"
+    echo "$(date +"%Y-%m-%d %H:%M:%S") [INFO ] 运行 gunicorn --config $GUNICORN_CONFIG"
+    exec gunicorn --config $GUNICORN_CONFIG
   else
-    echo "运行 gunicorn --bind $ADDRESS --config $GUNICORN_CONFIG python_example.wsgi:application"
-    exec gunicorn --bind $ADDRESS --config $GUNICORN_CONFIG "python_example.wsgi:application"
+    echo "$(date +"%Y-%m-%d %H:%M:%S") [INFO ] 运行 gunicorn --bind $ADDRESS --config $GUNICORN_CONFIG"
+    exec gunicorn --bind $ADDRESS --config $GUNICORN_CONFIG
   fi
 
 else
-  echo "$(date +"%Y-%m-%d %H:%M:%S") [ERROR ] 未知命令: $MODE"
+  echo "$(date +"%Y-%m-%d %H:%M:%S") [ERROR] 未知命令: $MODE"
   printHelp
   exit 1
 fi
