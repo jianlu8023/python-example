@@ -31,7 +31,7 @@ clean: docker-active
 .PHONY: clean
 
 
-DOCKER_PROD_FILE:= Dockerfile
+DOCKER_PROD_FILE:= Dockerfile-prod
 IMAGE_PROD_NAME:=ubuntu/python-example/gpu-server:$(IMAGE_VERSION)
 docker-prod: docker-active
 	@docker buildx build -t "$(IMAGE_PROD_NAME)" -f "$(DOCKER_PROD_FILE)" .

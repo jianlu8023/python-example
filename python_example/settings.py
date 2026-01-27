@@ -9,6 +9,7 @@ https://docs.djangoproject.com/en/5.2/topics/settings/
 For the full list of settings and their values, see
 https://docs.djangoproject.com/en/5.2/ref/settings/
 """
+import datetime
 import os
 import sys
 from pathlib import Path
@@ -61,7 +62,7 @@ MIDDLEWARE = [
     'django.contrib.auth.middleware.AuthenticationMiddleware',
     'django.contrib.messages.middleware.MessageMiddleware',
     'django.middleware.clickjacking.XFrameOptionsMiddleware',
-    
+
     'python_example.common.middleware.request.RequestLoggingMiddleware',
     # 添加 全局异常捕获
     'python_example.common.middleware.except.GlobalExceptionMiddleware'
@@ -145,19 +146,18 @@ os.makedirs(os.path.dirname(config.LOG_PATH), exist_ok=True)
 LOGGING = {
     'version': 1,
     'disable_existing_loggers': False,
-    
     'formatters': {
         'verbose': {
             'format': '[{levelname}] {asctime} {name} - {message}',
             'style': '{',
         },
         'standard': {
-            'format': '%(asctime)s | %(levelname)-6s | %(module)s:%(lineno)-4d | %(message)s',
+            'format': '%(asctime)s.%(msecs)03d | %(levelname)-7s | %(module)16s:%(lineno)-4d | %(message)s',
             'datefmt': '%Y-%m-%d %H:%M:%S',
         },
         'console': {
             '()': 'colorlog.ColoredFormatter',
-            'format': '%(asctime)s | %(log_color)s%(levelname)-6s%(reset)s | %(module)s:%(lineno)-4d | %(message)s',
+            'format': '%(asctime)s.%(msecs)03d | %(log_color)s%(levelname)-7s%(reset)s | %(module)16s:%(lineno)-4d | %(message)s',
             'datefmt': '%Y-%m-%d %H:%M:%S',
             'log_colors': {
                 'DEBUG': 'cyan',
@@ -168,7 +168,6 @@ LOGGING = {
             },
         }
     },
-    
     'handlers': {
         'console': {
             'class': 'logging.StreamHandler',
@@ -181,6 +180,9 @@ LOGGING = {
             'when': 'midnight',  # 每天零点新建一个日志文件
             'interval': 1,
             'backupCount': config.LOG_BACKUP_COUNT,  # 保留 7 天
+            'delay': False,
+            'utc': False,
+            'atTime': datetime.time(00, 00, 00),
             'formatter': 'standard',
             'encoding': 'utf-8',
             'level': 'DEBUG',  # 处理 debug 及以上的日志

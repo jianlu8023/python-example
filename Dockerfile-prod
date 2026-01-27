@@ -53,7 +53,7 @@ RUN pip config set global.index-url https://pypi.tuna.tsinghua.edu.cn/simple && 
 FROM ubuntu:22.04 AS tools-builder
 
 ENV GRPCURL_VERSION=1.9.3 \
-    GHPROXY=https://gh-proxy.com/ \
+    GHPROXY="" \
     DEBIAN_FRONTEND=noninteractive
 
 #              ubuntu                   alpine
@@ -67,7 +67,7 @@ RUN sed -i s@/archive.ubuntu.com/@/mirrors.aliyun.com/@g /etc/apt/sources.list &
     tini gosu wget curl tzdata && \
     dpkg-reconfigure -f noninteractive tzdata && \
     ln -fs /usr/share/zoneinfo/Asia/Shanghai /etc/localtime && \
-    wget ${GHPROXY}https://github.com/fullstorydev/grpcurl/releases/download/v${GRPCURL_VERSION}/grpcurl_${GRPCURL_VERSION}_linux_amd64.deb && \
+    wget --no-check-certificate ${GHPROXY}https://github.com/fullstorydev/grpcurl/releases/download/v${GRPCURL_VERSION}/grpcurl_${GRPCURL_VERSION}_linux_amd64.deb && \
     dpkg -i grpcurl_${GRPCURL_VERSION}_linux_amd64.deb
 
 # -plaintext 是不带ssl的
@@ -94,6 +94,7 @@ WORKDIR /code
 COPY . .
 
 RUN mv /code/docker-entrypoint.sh /docker-entrypoint.sh && \
+    rm /code/requirements*.txt && \
     chmod +x /docker-entrypoint.sh
 
 FROM ultralytics-builder AS runner-prepare

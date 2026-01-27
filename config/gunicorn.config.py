@@ -1,4 +1,7 @@
 import multiprocessing
+import os
+
+import gunicorn.glogging
 
 # 绑定地址和端口（监听所有 IP 的 8000 端口）
 bind = "0.0.0.0:8000"
@@ -15,9 +18,10 @@ worker_class = "sync"
 
 # 使用 Uvicorn ASGI Worker
 worker_class = "uvicorn.workers.UvicornWorker"
+wsgi_app = "python_example.asgi:application"
 
-wsgi_app = "py_modeluse.asgi:application"
-# wsgi_app = "py_modeluse.wsgi:application"
+# 使用 gunicorn wsgi worker
+# wsgi_app = "python_example.wsgi:application"
 
 # 最大并发连接数（每个 worker）
 worker_connections = 1000
@@ -26,7 +30,6 @@ worker_connections = 1000
 # limit_request_line = 4096
 # limit_request_fields = 100
 
-
 # Graceful shutdown 超时（秒）
 graceful_timeout = 30
 
@@ -34,7 +37,7 @@ graceful_timeout = 30
 backlog = 2048
 
 # 请求超时时间（秒），防止卡死
-timeout = 120
+timeout = int(os.getenv("GUNICORN_TIMEOUT", "120"))
 
 keepalive = 5
 
@@ -54,6 +57,64 @@ errorlog = "-"
 
 # 日志级别
 loglevel = "debug"
+
+logger_class = gunicorn.glogging.Logger
+
+# 可以设置日志信息 下方为默认
+logconfig_dict = {
+    "version": 1,
+    "disable_existing_loggers": False,
+    "root": {
+        "level": "INFO",
+        "handlers": ["console"]
+    },
+    "loggers": {
+        "gunicorn.error": {
+            "level": "DEBUG",
+            "handlers": ["error_console"],
+            "propagate": False,
+            "qualname": "gunicorn.error"
+        },
+        "gunicorn.access": {
+            "level": "DEBUG",
+            "handlers": ["console"],
+            "propagate": False,
+            "qualname": "gunicorn.access"
+        }
+    },
+    "handlers": {
+        "console": {
+            "class": "logging.StreamHandler",
+            "formatter": "generic",
+            "stream": "ext://sys.stdout"
+        },
+        "error_console": {
+            "class": "logging.StreamHandler",
+            "formatter": "generic",
+            "stream": "ext://sys.stderr"
+        },
+    },
+    "formatters": {
+        "generic": {
+            # "format": "%(asctime)s [%(process)d] [%(levelname)s] %(message)s",
+            # "datefmt": "[%Y-%m-%d %H:%M:%S %z]",
+            # "class": "logging.Formatter",
+
+            # 自定义
+            # "format": "%(asctime)s.%(msecs)03d | %(log_color)s%(levelname)-7s%(reset)s | %(module)16s:%(lineno)-4d | %(message)s",
+            "format": "%(asctime)s.%(msecs)03d | %(levelname)-7s | %(module)16s:%(lineno)-4d | %(message)s",
+            "datefmt": "%Y-%m-%d %H:%M:%S",
+            # '()': 'colorlog.ColoredFormatter',
+            # 'log_colors': {
+            #     'DEBUG': 'cyan',
+            #     'INFO': 'blue',
+            #     'WARNING': 'yellow',
+            #     'ERROR': 'red',
+            #     'CRITICAL': 'red,bg_white',
+            # },
+        }
+    }
+}
 
 # 是否将 stdout/stderr 重定向到 error log
 capture_output = True

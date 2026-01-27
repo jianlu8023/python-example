@@ -94,6 +94,7 @@ WORKDIR /code
 COPY . .
 
 RUN mv /code/docker-entrypoint.sh /docker-entrypoint.sh && \
+    rm /code/requirements*.txt && \
     chmod +x /docker-entrypoint.sh
 
 FROM ultralytics-builder AS runner-prepare
