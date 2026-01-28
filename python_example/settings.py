@@ -175,7 +175,8 @@ LOGGING = {
             'level': 'DEBUG',  # 只处理 info 及以上的日志
         },
         'file': {
-            'class': 'logging.handlers.TimedRotatingFileHandler',
+            # 'class': 'logging.handlers.TimedRotatingFileHandler',
+            'class': 'python_example.common.logging.handlers.custom_handlers.ReliableTimedRotatingFileHandler',
             'filename': config.LOG_PATH,
             'when': 'midnight',  # 每天零点新建一个日志文件
             'interval': 1,
