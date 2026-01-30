@@ -85,7 +85,8 @@ WORKDIR /pip
 COPY requirements.txt .
 
 RUN uv --no-cache pip install --system -r requirements.txt && \
-    rm -rf /root/.cache/uv
+    rm -rf /root/.cache/uv && \
+    rm -rf /pip
 
 FROM pytorch/pytorch:2.5.1-cuda12.1-cudnn9-runtime AS code-builder
 
