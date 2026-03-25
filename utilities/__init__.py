@@ -1,6 +1,6 @@
 from .filepath import get_dir_all_files, get_filename
 from .image import apply_exif_orientation
-from .logger import get_logger
+from .logger import get_logger, init_logger
 
 # def configparser() -> str:
 #     """

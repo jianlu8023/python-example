@@ -77,3 +77,20 @@ def get_filename(path: str, with_suffix: bool = False) -> str:
     # p.name 获取带后缀的文件名 (basename)
     # p.stem 获取不带后缀的文件名
     return p.name if with_suffix else p.stem
+
+def get_project_root(project_name="your_project_root", depth=2):
+    """
+    1. 优先匹配目录名
+    2. 其次寻找特征文件 (.git, requirements.txt)
+    3. 最后按给定的层级(depth)强制回退作为兜底
+    """
+    current_path = Path(__file__).resolve()
+
+    # 逻辑 1 & 2：向上搜索匹配名称或特征文件
+    for parent in current_path.parents:
+        if parent.name == project_name or (parent / ".git").exists() or (parent / "requirements.txt").exists():
+            return parent
+
+    # 逻辑 3：兜底逻辑，按原代码逻辑回退固定层级 (yolo_crop.py 在 project/A/B/ 下，回退2级到project)
+    # parents[0]是父目录, parents[1]是爷爷目录...
+    return current_path.parents[depth] if len(current_path.parents) > depth else current_path.parent
