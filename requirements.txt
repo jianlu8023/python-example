@@ -4,11 +4,30 @@
 # 扩展索引
 --extra-index-url https://download.pytorch.org/whl/cu121
 
-keras==3.9.2
-visualkeras==0.1.4
+# pytorch
 torch==2.5.1
 torchvision==0.20.1
 torchaudio==2.5.1
+
+# keras
+keras==3.9.2
+visualkeras==0.1.4
+
+# yolo
+ultralytics==8.3.234
+
+# rfdetr
+rfdetr==1.5.2
+
+# 安装rfdetr 1.6.0
+# rfdetr==1.6.0
+# pytorch-lightning==2.6.1
+# pycocotools==2.0.11
+# albumentations==1.4.24
+# fast-coco-eval==1.7.2
+
+
+# other
 matplotlib==3.10.3
 scipy==1.15.3
 
