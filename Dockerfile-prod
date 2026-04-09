@@ -44,8 +44,8 @@ RUN git clone -b $ULTRALYTICS_VERSION https://github.com/ultralytics/ultralytics
     sed -i'' -e 's/"opencv-python/"opencv-python-headless/' pyproject.toml
 ADD https://github.com/ultralytics/assets/releases/download/v8.3.0/yolo11n.pt .
 
-RUN pip config set global.index-url https://pypi.tuna.tsinghua.edu.cn/simple && \
-    pip install uv && \
+RUN pip config set global.index-url https://mirrors.aliyun.com/pypi/simple/ && \
+    pip install -U uv && \
     uv --no-cache pip install --system -e "." albumentations faster-coco-eval wandb && \
     rm -rf tmp /root/.config/Ultralytics/persistent_cache.json && \
     rm -rf /root/.cache/uv
@@ -86,7 +86,7 @@ COPY requirements.txt .
 
 RUN uv --no-cache pip install --system -r requirements.txt && \
     rm -rf /root/.cache/uv && \
-    rm -rf /pip 
+    rm -rf /pip
 
 FROM pytorch/pytorch:2.5.1-cuda12.1-cudnn9-runtime AS code-builder
 
@@ -130,6 +130,8 @@ COPY --from=runner-prepare --chown=appuser:appusers /root/.config/Ultralytics/Ar
 COPY --from=runner-prepare --chown=appuser:appusers /root/.config/Ultralytics/Arial.Unicode.ttf /home/appuser/.config/Ultralytics/Arial.Unicode.ttf
 COPY --from=runner-prepare --chown=appuser:appusers /root/.cache/torch/hub/checkpoints/*        /home/appuser/.cache/torch/hub/checkpoints/
 
+
+ENV ENABLE_DEBUG_LOG=false
 
 USER appuser:appusers
 

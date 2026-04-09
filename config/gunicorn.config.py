@@ -60,6 +60,19 @@ loglevel = "debug"
 
 logger_class = gunicorn.glogging.Logger
 
+# _default_handlers = {
+#     "console": {
+#         "class": "logging.StreamHandler",
+#         "formatter": "generic",
+#         "stream": "ext://sys.stdout"
+#     },
+# }
+#
+# if os.getenv("ENABLE_DEBUG_LOG", default=False) in ['true', '1', 't', 'yes']:
+#     _root_handlers = ['console', 'file']
+# else:
+#     _root_handlers = ['console']
+
 # 可以设置日志信息 下方为默认
 logconfig_dict = {
     "version": 1,
@@ -80,7 +93,12 @@ logconfig_dict = {
             "handlers": ["console"],
             "propagate": False,
             "qualname": "gunicorn.access"
-        }
+        },
+        'uvicorn': {
+            'handlers': ['console'],
+            'level': 'DEBUG',
+            'propagate': False,
+        },
     },
     "handlers": {
         "console": {

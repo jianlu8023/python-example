@@ -143,6 +143,37 @@ DEFAULT_AUTO_FIELD = 'django.db.models.BigAutoField'
 ############################# LOGGING #############################
 
 os.makedirs(os.path.dirname(config.LOG_PATH), exist_ok=True)
+
+_default_handlers = {
+    'console': {
+        'class': 'logging.StreamHandler',
+        'formatter': 'console',
+        'level': 'DEBUG',  # 只处理 info 及以上的日志
+    },
+}
+
+if os.getenv("ENABLE_DEBUG_LOG", default=False).lower() in ['true', '1', 't', 'yes']:
+    _default_handlers["file"] = {
+        'class': 'logging.handlers.RotatingFileHandler',
+        # 'class': 'logging.handlers.TimedRotatingFileHandler',
+        # 'class': 'python_example.common.logging.handlers.custom_handlers.ReliableTimedRotatingFileHandler',
+        # 'class': 'python_example.common.logging.handlers.custom_handlers.MultiProcessSafeTimedRotatingFileHandler',
+        'filename': config.LOG_PATH,
+        # 'when': 'midnight',  # 每天零点新建一个日志文件
+        # 'interval': 1,
+        'backupCount': config.LOG_BACKUP_COUNT,  # 保留 7 天
+        'maxBytes': 50 * 1024 * 1024,  # 50MB
+        # 'delay': False,
+        # 'utc': False,
+        # 'atTime': datetime.time(00, 00, 00),
+        'formatter': 'standard',
+        'encoding': 'utf-8',
+        'level': 'DEBUG',  # 处理 debug 及以上的日志
+    }
+    _root_handlers = ['console', 'file']
+else:
+    _root_handlers = ['console']
+
 LOGGING = {
     'version': 1,
     'disable_existing_loggers': False,
@@ -168,37 +199,43 @@ LOGGING = {
             },
         }
     },
-    'handlers': {
-        'console': {
-            'class': 'logging.StreamHandler',
-            'formatter': 'console',
-            'level': 'DEBUG',  # 只处理 info 及以上的日志
-        },
-        'file': {
-            'class': 'logging.handlers.TimedRotatingFileHandler',
-            # 'class': 'python_example.common.logging.handlers.custom_handlers.ReliableTimedRotatingFileHandler',
-            # 'class': 'python_example.common.logging.handlers.custom_handlers.MultiProcessSafeTimedRotatingFileHandler',
-            'filename': config.LOG_PATH,
-            'when': 'midnight',  # 每天零点新建一个日志文件
-            'interval': 1,
-            'backupCount': config.LOG_BACKUP_COUNT,  # 保留 7 天
-            'delay': False,
-            'utc': False,
-            'atTime': datetime.time(00, 00, 00),
-            'formatter': 'standard',
-            'encoding': 'utf-8',
-            'level': 'DEBUG',  # 处理 debug 及以上的日志
-        },
-    },
+    # 'handlers': {
+    #     'console': {
+    #         'class': 'logging.StreamHandler',
+    #         'formatter': 'console',
+    #         'level': 'DEBUG',  # 只处理 info 及以上的日志
+    #     },
+    #     'file': {
+    #         'class': 'logging.handlers.TimedRotatingFileHandler',
+    #         # 'class': 'python_example.common.logging.handlers.custom_handlers.ReliableTimedRotatingFileHandler',
+    #         # 'class': 'python_example.common.logging.handlers.custom_handlers.MultiProcessSafeTimedRotatingFileHandler',
+    #         'filename': config.LOG_PATH,
+    #         'when': 'midnight',  # 每天零点新建一个日志文件
+    #         'interval': 1,
+    #         'backupCount': config.LOG_BACKUP_COUNT,  # 保留 7 天
+    #         'delay': False,
+    #         'utc': False,
+    #         'atTime': datetime.time(00, 00, 00),
+    #         'formatter': 'standard',
+    #         'encoding': 'utf-8',
+    #         'level': 'DEBUG',  # 处理 debug 及以上的日志
+    #     },
+    # },
+    'handlers': _default_handlers,
     'root': {
-        'handlers': ['console', 'file'],
+        'handlers': _root_handlers,
         'level': 'DEBUG',
     },
     'loggers': {
         '__main__': {
-            'handlers': ['console', 'file'],
+            'handlers': _root_handlers,
             'level': 'DEBUG',  # Logger 必须能接收 debug 日志
             'propagate': False,  # 防止冒泡到 root logger
         },
+        'uvicorn': {
+            'handlers': _root_handlers,
+            'level': 'DEBUG',
+            'propagate': False,
+        }
     }
 }

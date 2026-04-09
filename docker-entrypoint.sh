@@ -1,6 +1,23 @@
 #!/bin/bash
 
 
+# 日志配置
+LOG_DIR="logs"
+LOG_FILE="${LOG_DIR}/run.log"
+
+# 1. 创建日志目录
+mkdir -p "$LOG_DIR"
+
+# 2. 重定向输出到 tee，同时写入文件和屏幕
+# 解释：
+# >(...) 是进程替换，创建一个临时的管道。
+# stdbuf -oL tee ... : 强制 tee 使用行缓冲，确保日志能实时显示，不会卡在缓冲区。
+# -a 表示追加模式，防止重启脚本时覆盖当天的旧日志。
+exec > >(stdbuf -oL tee -a "$LOG_FILE") 2>&1
+
+#echo "日志系统已启动，日志文件: $LOG_FILE"
+
+
 user=appuser
 
 # 切换到指定用户重新执行 shell

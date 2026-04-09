@@ -133,6 +133,8 @@ COPY --from=runner-prepare --chown=appuser:appusers /root/.cache/torch/hub/check
 
 USER appuser:appusers
 
+ENV ENABLE_DEBUG_LOG=true
+
 VOLUME /home/appuser/myapp/logs \
        /home/appuser/myapp/db \
        /home/appuser/myapp/config
