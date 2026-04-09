@@ -27,3 +27,8 @@ uvicorn==0.40.0
 
 # yolo 官方库
 #ultralytics==8.3.234
+
+#onnx==1.19.1
+#onnxslim==0.1.90
+#onnxsim==0.5.0 # python3.10 好装 3.11没装上
+onnxruntime==1.23.2
