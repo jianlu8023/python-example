@@ -29,7 +29,8 @@ RUN sed -i s@/archive.ubuntu.com/@/mirrors.aliyun.com/@g /etc/apt/sources.list &
     zip unzip \
     wget curl \
     libgl1 libglib2.0-0 gnupg libsm6  \
-    tzdata && \
+    tzdata \
+    logrotate && \
     echo "Asia/Shanghai" > /etc/timezone && \
     ln -fs /usr/share/zoneinfo/Asia/Shanghai /etc/localtime && \
     dpkg-reconfigure -f noninteractive tzdata && \
@@ -117,7 +118,24 @@ RUN groupadd -g 1000 -r appusers && \
     mkdir -p /home/appuser/myapp/uploads && \
     mkdir -p /home/appuser/.config/Ultralytics && \
     mkdir -p /home/appuser/.cache/torch/hub/checkpoints && \
-    chown -R appuser:appusers /home/appuser
+    chown -R appuser:appusers /home/appuser && \
+    tee /etc/logrotate.d/myapp <<'EOF'
+/home/appuser/myapp/logs/run.log {
+    su appuser myusers
+    daily
+    rotate 30
+    missingok
+    notifempty
+    copytruncate
+    delaycompress
+    dateext
+    dateformat -%Y%m%d
+    compress
+    create 0644 appuser myusers
+    sharedscripts
+    noolddir
+}
+EOF
 
 WORKDIR /home/appuser/myapp
 

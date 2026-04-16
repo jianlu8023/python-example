@@ -17,6 +17,9 @@ exec > >(stdbuf -oL tee -a "$LOG_FILE") 2>&1
 
 #echo "日志系统已启动，日志文件: $LOG_FILE"
 
+echo ""
+echo ""
+echo ""
 
 user=appuser
 

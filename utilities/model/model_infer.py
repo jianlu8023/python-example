@@ -94,6 +94,10 @@ class ModelInferEngine:
             ModelType.YOLO_DETECT: self._infer_yolo_detect,
             ModelType.YOLO_CLASSIFY: self._infer_yolo_classify,
             ModelType.RESNET18: self._infer_resnet18,
+            ModelType.RFDETR_DETECT_NANO: self._infer_rfdetr,
+            ModelType.RFDETR_DETECT_SMALL: self._infer_rfdetr,
+            ModelType.RFDETR_DETECT_MEDIUM: self._infer_rfdetr,
+            ModelType.RFDETR_DETECT_LARGE: self._infer_rfdetr,
         }
 
         if config.model_type not in dispatch:
@@ -143,6 +147,89 @@ class ModelInferEngine:
                     filtered_results.append(res_obj)
 
             # 将本张图的所有框映射坐标后放入 result
+            mapped = self.processor.map_coords_back(parsed_all_boxes, item['original_bbox_offset'])
+            all_res_nested.append(mapped)
+
+        return {
+            "success": True,
+            "task": config.task_name,
+            "result": all_res_nested,  # 所有检测框
+            "filtered_results": filtered_results,  # 仅包含高置信度结果
+            "input": inputs
+        }
+
+    def _infer_rfdetr(self, config: ModelInferConfig, inputs: List[Dict]):
+        """
+
+        :param config:
+        :param inputs:
+        :return:
+        """
+
+        if config.model_type == ModelType.RFDETR_DETECT_NANO:
+            model = self.model_cache.get_rfdetr_nano(config.model_path, self.device)
+        elif config.model_type == ModelType.RFDETR_DETECT_SMALL:
+            model = self.model_cache.get_rfdetr_small(config.model_path, self.device)
+        elif config.model_type == ModelType.RFDETR_DETECT_MEDIUM:
+            model = self.model_cache.get_rfdetr_medium(config.model_path, self.device)
+        elif config.model_type == ModelType.RFDETR_DETECT_LARGE:
+            model = self.model_cache.get_rfdetr_large(config.model_path, self.device)
+        else:
+            raise ValueError("未知模型类型")
+
+        # rfdetr中会有一个标签序号表示模型认为是背景的序号 通常设置为 0
+        # model_labels 从 1 开始 class_id 为 0 认为是背景
+        # model_labels 从 0 开始 class_id 为 max(class_id)+1 认为是背景
+
+        all_res_nested = []  # 全量结果
+        filtered_results = []  # 达标结果
+
+        for img_idx, item in enumerate(inputs):
+            # 1. 获取模型看到的“所有”框
+            results = model.predict(
+                item['image'],
+                device=self.device,
+                threshold=0.00001,  # 获取极低阈值下的所有框以便后续过滤
+                verbose=config.verbose
+            )
+
+            # 确保 results 是列表格式以便统一迭代
+            fix_results = results if isinstance(results, list) else [results]
+
+            # 合法的标签序号
+            valid_indices = set(config.labels.keys())
+
+            parsed_all_boxes = []
+            for r in fix_results:
+                for xyxy, class_id, confidence in zip(r.xyxy, r.class_id, r.confidence):
+                    cls_id_int = int(class_id)
+                    conf_val = float(confidence)
+
+                    # 过滤背景或无效类 ID
+                    if cls_id_int not in valid_indices:
+                        continue
+
+                    # 获取边界框坐标并转为列表
+                    bbox_list = xyxy.tolist()
+                    bbox = bbox_list if len(bbox_list) >= 4 else []
+
+                    # 构造结果对象
+                    res_obj = {
+                        "object_id": item.get("object_id", f"obj_{img_idx}_{len(parsed_all_boxes)}"),
+                        "input_index": img_idx,
+                        "bbox": bbox,
+                        "conf": conf_val,
+                        "cls_id": cls_id_int,
+                        "name": config.labels.get(cls_id_int, str(cls_id_int)),
+                        "task_name": config.task_name
+                    }
+                    parsed_all_boxes.append(res_obj)
+
+                    # 只有大于用户定义阈值的，才放入 filtered_results
+                    if conf_val >= config.conf_threshold:
+                        filtered_results.append(res_obj)
+
+                # 使用你原有的 processor 映射坐标，不引入额外的手动计算逻辑
             mapped = self.processor.map_coords_back(parsed_all_boxes, item['original_bbox_offset'])
             all_res_nested.append(mapped)
 

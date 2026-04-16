@@ -32,3 +32,5 @@ uvicorn==0.40.0
 #onnxslim==0.1.90
 #onnxsim==0.5.0 # python3.10 好装 3.11没装上
 onnxruntime==1.23.2
+
+pytest==9.0.3
