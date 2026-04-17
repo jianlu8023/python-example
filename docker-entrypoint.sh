@@ -21,6 +21,15 @@ echo ""
 echo ""
 echo ""
 
+(
+    while true; do
+        # 计算距离明天 00:01 的秒数
+        SLEEP_SECONDS=$(( $(date -d "tomorrow 00:01" +%s) - $(date +%s) ))
+        sleep $SLEEP_SECONDS
+        logrotate -s /home/appuser/myapp/logs/logrotate.status /etc/logrotate.d/myapp -f
+    done
+) &
+
 user=appuser
 
 # 切换到指定用户重新执行 shell

@@ -121,7 +121,7 @@ RUN groupadd -g 1000 -r appusers && \
     chown -R appuser:appusers /home/appuser && \
     tee /etc/logrotate.d/myapp <<'EOF'
 /home/appuser/myapp/logs/run.log {
-    su appuser myusers
+    su appuser appusers
     daily
     rotate 30
     missingok
@@ -131,7 +131,7 @@ RUN groupadd -g 1000 -r appusers && \
     dateext
     dateformat -%Y%m%d
     compress
-    create 0644 appuser myusers
+    create 0644 appuser appusers
     sharedscripts
     noolddir
 }
