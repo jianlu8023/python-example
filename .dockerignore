@@ -1,0 +1,14 @@
+.idea/
+logs/
+db/db.sqlite3
+AGENTS.md
+Dockerfile*
+README.md
+Makefile
+.gitignore
+.dockerignore
+.commands
+.conda
+.django
+.git/
+

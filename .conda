@@ -1,0 +1,7 @@
+# conda create -n django python=3.11
+# conda activate django
+# conda deactivate
+
+# conda create -n mytorch python=3.11
+# conda activate mytorch
+# conda deactivate mytorch

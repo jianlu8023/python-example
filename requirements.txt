@@ -1,0 +1,45 @@
+# requirements.txt
+# 主索引
+--index-url https://pypi.tuna.tsinghua.edu.cn/simple
+# 扩展索引
+--extra-index-url https://download.pytorch.org/whl/cu121
+
+# ============ django ============
+Django==5.2.9
+djangorestframework==3.16.1
+django-extensions==4.1
+djangorestframework-stubs==3.16.6
+#pid==3.0.4
+django-ipware==7.0.1
+colorlog==6.10.1
+gunicorn==23.0.0
+httptools==0.7.1
+uvloop==0.22.1
+uvicorn==0.40.0
+onnxruntime==1.23.2
+pytest==9.0.3
+
+# ============ pytorch ============
+torch==2.5.1
+torchvision==0.20.1
+torchaudio==2.5.1
+keras==3.9.2
+visualkeras==0.1.4
+ultralytics==8.3.234
+rfdetr==1.5.2
+# 安装rfdetr 1.6.0
+# rfdetr==1.6.0
+# pytorch-lightning==2.6.1
+# pycocotools==2.0.11
+# albumentations==1.4.24
+# fast-coco-eval==1.7.2
+matplotlib==3.10.3
+scipy==1.15.3
+seaborn==0.13.2
+tqdm==4.67.1
+scikit-learn==1.7.2
+
+# ============ 其他（原注释保留） ============
+#onnx==1.19.1
+#onnxslim==0.1.90
+#onnxsim==0.5.0 # python3.10 好装 3.11没装上
