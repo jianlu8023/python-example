@@ -4,13 +4,10 @@ import torch.optim as optim
 from torch.utils.data import DataLoader, TensorDataset
 import logging
 
-from other.func import say
-
-log = logging.getLogger(__name__)
+logger = logging.getLogger(__name__)
 
 
 def simple_train(epochs=100, counts=1000, batchsize=32):
-    say()
     # 1. 创建一个简单的数据集
     X = torch.randn(counts, 10)
     y = torch.randint(0, 2, (counts,))
@@ -39,9 +36,9 @@ def simple_train(epochs=100, counts=1000, batchsize=32):
             optimizer.step()
 
             # 打印训练信息
-            log.debug(f"Epoch: {epoch + 1}/{epochs} Batch: {batch_idx + 1}/{len(data_loader)} Loss: {loss.item():.4f}")
+            logger.debug(
+                f"Epoch: {epoch + 1}/{epochs} Batch: {batch_idx + 1}/{len(data_loader)} Loss: {loss.item():.4f}")
             # print(f"Epoch: {epoch + 1}/{epochs}, Batch: {batch_idx + 1}/{len(data_loader)}, Loss: {loss.item():.4f}")
-    say()
 
 
 if __name__ == "__main__":

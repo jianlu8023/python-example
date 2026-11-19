@@ -1,4 +1,4 @@
-# yolo-detect-infer.py yolo推理detect
+# yolo_detect_example.py yolo推理detect
 
 import os
 import sys

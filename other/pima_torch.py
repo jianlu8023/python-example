@@ -46,6 +46,7 @@ y_test_tensor = torch.tensor(y_test, dtype=torch.float32).unsqueeze(1)
 train_dataset = TensorDataset(X_train_tensor, y_train_tensor)
 train_loader = DataLoader(train_dataset, batch_size=16, shuffle=True)
 
+
 # -----------------------------
 # 3. 定义 MLP 模型
 # -----------------------------
@@ -62,9 +63,10 @@ class DiabetesMLP(nn.Module):
             nn.Linear(32, 1),
             nn.Sigmoid()  # 输出概率 [0,1]
         )
-    
+
     def forward(self, x):
         return self.net(x)
+
 
 model = DiabetesMLP()
 criterion = nn.BCELoss()  # 二分类交叉熵
@@ -82,17 +84,17 @@ for epoch in range(epochs):
     total_loss = 0.0
     for batch_x, batch_y in train_loader:
         batch_x, batch_y = batch_x.to(device), batch_y.to(device)
-        
+
         optimizer.zero_grad()
         outputs = model(batch_x)
         loss = criterion(outputs, batch_y)
         loss.backward()
         optimizer.step()
-        
+
         total_loss += loss.item()
-    
+
     if (epoch + 1) % 20 == 0:
-        print(f"Epoch [{epoch +1}/{epochs}], Loss: {total_loss /len(train_loader):.4f}")
+        print(f"Epoch [{epoch + 1}/{epochs}], Loss: {total_loss / len(train_loader):.4f}")
 
 # -----------------------------
 # 5. 评估模型

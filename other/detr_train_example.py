@@ -1,4 +1,4 @@
-# run-detr.py 用于使用rfdetr库进行detr模型训练
+# detr_train_example.py 用于使用rfdetr库进行detr模型训练
 
 # 设置cuda可见卡的信息 因为 rfdetr无法设置cuda:3
 import os

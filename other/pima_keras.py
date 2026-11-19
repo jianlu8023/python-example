@@ -46,18 +46,18 @@ def plma_train(datasets: str, delimiter: AnyStr, epochs=10, batch_size=8):
         # 1. 确定设备 cpu / cuda
         device = torch.device("cuda" if torch.cuda.is_available() else "cpu")
         log.info(f"Using device: {device}")
-        
+
         # 2. 获取模型 并转移到device
         model = plma_model()
         model.to(device)
         plma_compile(model)
-        
+
         # 3. 设置随机种子
         seed = 7
         numpy.random.seed(seed)
         # 设置pytorch 随机种子
         torch.manual_seed(seed)
-        
+
         # 4. 加载数据
         dataset = numpy.loadtxt(fname=datasets, delimiter=delimiter)
         X = dataset[:, 0:8]
@@ -89,7 +89,7 @@ def batch_dataset(model: keras.Model, epochs: int, batch_size: int,
     Y = torch.tensor(Y, dtype=torch.float32)
     log.info(f"X shape {X.shape}")
     log.info(f"Y shape {Y.shape}")
-    
+
     #
     def divide(a, b):
         result = a / b
@@ -97,7 +97,7 @@ def batch_dataset(model: keras.Model, epochs: int, batch_size: int,
             return int(result)
         else:
             return math.ceil(result)
-    
+
     batch_num = divide(X.shape[0], batch_size)
     log.info(f"Batch size: {batch_num}")
     for i in range(epochs):
@@ -121,7 +121,7 @@ def batch_dataset(model: keras.Model, epochs: int, batch_size: int,
             log.info(f"epoch {i + 1} batch {batch + 1} train_loss {train_batch_loss} train_acc {train_batch_acc}")
         train_loss = float(numpy.mean(numpy.array(train_loss_batch)))  # 计算当前轮训练的损失值
         train_acc = float(numpy.mean(numpy.array(train_acc_batch)))  # 计算当前轮训练集正确率
-        
+
         for batch in range(batch_num):
             start = batch * batch_size
             end = start + batch_size
@@ -156,14 +156,14 @@ def split_dataset(model: keras.Model, epochs: int, batch_size: int,
     train_loader = torch.utils.data.DataLoader(train_dataset, batch_size=batch_size
                                                , shuffle=True)
     test_loader = torch.utils.data.DataLoader(test_dataset, batch_size=batch_size, shuffle=False)
-    
+
     for i in range(epochs):
         train_loss_batch, train_acc_batch = [], []
         test_loss_batch, test_acc_batch = [], []
         for batch in train_loader:
             X_batch, Y_batch = batch
             X_batch, Y_batch = X_batch.to(device), Y_batch.to(device)
-            
+
             if torch.cuda.is_available():
                 with torch.cuda.device(0):
                     # log.info(f"Epoch {i + 1} train on device: {device}")
@@ -176,7 +176,7 @@ def split_dataset(model: keras.Model, epochs: int, batch_size: int,
             train_acc_batch.append(train_batch_acc)
         train_loss = float(numpy.mean(numpy.array(train_loss_batch)))  # 计算当前轮训练的损失值
         train_acc = float(numpy.mean(numpy.array(train_acc_batch)))  # 计算当前轮训练集正确率
-        
+
         for batch in test_loader:
             X_batch, Y_batch = batch
             X_batch, Y_batch = X_batch.to(device), Y_batch.to(device)
@@ -193,10 +193,10 @@ def split_dataset(model: keras.Model, epochs: int, batch_size: int,
             test_acc_batch.append(test_batch_acc)
         test_loss = float(numpy.mean(numpy.array(test_loss_batch)))  # 计算当前轮测试的损失值
         test_acc = float(numpy.mean(numpy.array(test_acc_batch)))  # 计算当前轮测试集正确率
-        
+
         log.debug(
             f'epoch {i + 1 :3d}/{epochs} train_acc {train_acc:.7f} train_loss {train_loss:.7f} test_acc {test_acc:.7f} test_loss {test_loss:.7f}')
-        
+
         log.info(f'epoch {i + 1:3d}/{epochs} starting predict...')
         for batch in test_loader:
             X_batch, Y_batch = batch

@@ -1,4 +1,4 @@
-# detr-detect-infer-official.py 使用detr进行推理
+# detr_infer_example.py 使用detr进行推理
 import sys
 from pathlib import Path
 
