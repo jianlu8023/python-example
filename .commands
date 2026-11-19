@@ -1,1 +1,14 @@
-# pip install -r requirements.txt
+# .commands 说明python环境的使用
+
+## 检查是否已有conda环境
+    whereis conda && which conda # 检查当前是否有conda
+    conda env list | grep "环境名"(环境名定义在.conda文件中)
+    conda activate "环境名"
+
+## 重建 conda 环境步骤
+
+    conda create -n python-example python=3.11 --yes # 重建conda环境
+    pip install -U uv # 安装uv
+    uv pip install --system --extra-index-url https://download.pytorch.org/whl/cu121 --index-url https://pypi.tuna.tsinghua.edu.cn/simple torch==2.5.1 torchvision==0.20.1 torchaudio==2.5.1
+    uv pip install --system Django==5.2.9 djangorestframework==3.16.1 django-extensions==4.1 djangorestframework-stubs==3.16.6 django-ipware==7.0.1 colorlog==6.10.1 gunicorn==23.0.0 httptools==0.7.1 uvloop==0.22.1 uvicorn==0.40.0 onnxruntime==1.23.2 pytest==9.0.3
+    uv pip install --system keras==3.9.2 visualkeras==0.1.4 ultralytics==8.3.234 rfdetr==1.5.2 matplotlib==3.10.3 scipy==1.15.3 seaborn==0.13.2 tqdm==4.67.1 scikit-learn==1.7.2
